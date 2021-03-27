@@ -21,7 +21,7 @@ IDENTIFICATOR {litera}+{identificator}*
 
 VALOARE_VARIABILA_INT {cifra}*
 VALOARE_VARIABILA_FLOAT {cifra}*+"."+{cifra}*
-VALOARE_VARIABILA_CHAR [']+[^\n\r]*+[']
+VALOARE_VARIABILA_CHAR ['][^\n\r]*[']
 VALOARE_VARIABILA_STRING ["][^\n\r]*["]
 
 /*** Declararea regulilor pentru tokeni ***/
@@ -35,7 +35,7 @@ VALOARE_VARIABILA_STRING ["][^\n\r]*["]
 {VALOARE_VARIABILA_STRING}  {prelucreazaToken(yytext,"VALOARE_VARIABILA_STRING");}
 
 "//".+            {prelucreazaToken(yytext,"Comentariu pe o singura linie");}
-"/*"(\n|.)+"*/"   {prelucreazaToken(yytext,"Comentariu pe mai multe linii");}
+"/*"(\n|.)*"*/"   {prelucreazaToken(yytext,"Comentariu pe mai multe linii");}
 "\n"              {numarLinii++; prelucreazaToken("'slash' n","NEW_LINE");}
 [ \t\r\f]+	      {/* ignora spatiile */}
 <<EOF>>           {return 0;}
