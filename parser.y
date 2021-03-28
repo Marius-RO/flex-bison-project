@@ -7,8 +7,9 @@
 
     extern FILE *yyin;
 
-    // aceste functii vor fi generate de flex
+    // aceasta functie va fi generata de flex
     extern int yylex();
+
     extern void yyerror(char const* msg);
 
 %}
