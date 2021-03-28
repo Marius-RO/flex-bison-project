@@ -4,13 +4,12 @@
     #include <cmath>
     #include "parser.hpp"
 
-    extern bool seteazaFisierulDeInput(const char* numeFisier);
+
+    extern FILE *yyin;
 
     // aceste functii vor fi generate de flex
     extern int yylex();
     extern void yyerror(char const* msg);
-
-    extern FILE *yyin;
 
 %}
 
@@ -54,15 +53,10 @@ void yyerror(char const* msg){
 
 int main(){
     const char* inputFile = "input/input-2.cpp";
-+   yyin = fopen(inputFile,"r");
-+   if(!yyin){
-+         std::cout << "[EROARE] Fisierul de input [" << inputFile << "] nu fost deschis!\n";
-+         return -1;
-+    }
-    // const char* fisierInput = "input/input-2.cpp";
-    // if(!seteazaFisierulDeInput(fisierInput)){
-    //     std::cout << "[EROARE] Fisierul de input [" << fisierInput << "] nu fost deschis!\n";
-    //     return -1;
-    // }
+    yyin = fopen(inputFile,"r");
+    if(!yyin){
+         std::cout << "[EROARE] Fisierul de input [" << inputFile << "] nu fost deschis!\n";
+         return -1;
+    }
     return yyparse();
 }

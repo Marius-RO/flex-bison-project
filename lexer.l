@@ -13,9 +13,6 @@
     void prelucreazaToken(std::string token, std::string tipToken);
     void prelucreazaEroare(std::string token, std::string tipToken);
 
-    extern bool seteazaFisierulDeInput(const char* filename);
-    extern void inchideFisierulDeInput();
-
     // aceasta functie va fi generate de bison
     extern int yyparse();
 %}
@@ -32,7 +29,7 @@ paranthesis [()]
 "\n"            { prelucreazaToken("'slash' n","NEW_LINE"); return '\n';}
 [ \t\r\f]+	    {/* ignora spatiile */}
 .               { prelucreazaEroare(yytext, "nu a fost identificat");}
-<<EOF>>         { inchideFisierulDeInput(); yyterminate(); }
+<<EOF>>         { yyterminate(); }
 
 %%
 
@@ -46,21 +43,4 @@ void prelucreazaToken(std::string token, std::string tipToken){
 void prelucreazaEroare(std::string token, std::string eroare){
     // printeaza cu rosu eroarea si apoi reseteaza
     std::cout << "\033[31mEroare la linia [" << numarLinii << "]: Tokenul [" << token << "] " << eroare << "\033[0m\n";
-}
-
-bool seteazaFisierulDeInput(const char* numeFisier){
-    if(numeFisier){
-        yyin = fopen(numeFisier,"r");
-        if(yyin){
-            return true;
-        }
-        return false;
-    }
-    return false;
-}
-
-void inchideFisierulDeInput(){
-    if(yyin){
-        fclose(yyin);
-    }
 }
