@@ -1,15 +1,18 @@
-/* prologue */
+/*** Sectiunea de declaratii pentru componentele limbajului C++ (headere, declaratii, variabile, etc. ) ***/
 %{
     #include <iostream>
     #include <cmath>
     #include "parser.hpp"
 
-    // this function will be generated using flex
+    extern bool seteazaFisierulDeInput(const char* numeFisier);
+
+    // aceste functii vor fi generate de flex
     extern int yylex();
     extern void yyerror(char const* msg);
 
-    extern FILE *yyin;
 %}
+
+/*** Declararea tokenilor ***/
 
 %union{
     double dbl;
@@ -24,7 +27,7 @@
 %start program
 
 
-/* rule section */
+/*** Declararea gramaticii si a regulilor pentru gramatica ***/
 %%
 program: /* empty */
     | program expr '\n' {  std::cout << $2 << "\n"; }
@@ -42,24 +45,16 @@ term: LITERAL_DBL {$$ = $1;}
 
 %%
 
+/*** Implementarea functiilor C++ (main si altele daca este cazul (daca au fost declarate in sectiunea de declaratii)) ***/
 void yyerror(char const* msg){
     std::cout << "Syntax error: " << msg << "\n";
 }
 
 int main(){
-    // const char* inputFile = "input/input-2.cpp";
-    // yyin = fopen(inputFile,"r");
-    // if(!yyin){
-    //     std::cout << "[EROARE] Fisierul de input [" << inputFile << "] nu fost deschis!\n";
-    //     return -1;
-    // }
-
-    //return yyparse();
-
-    while(true){
-        int res = yyparse();
-        if(res != 0){
-            return res;
-        }
+    const char* fisierInput = "input/input-2.cpp";
+    if(!seteazaFisierulDeInput(fisierInput)){
+        std::cout << "[EROARE] Fisierul de input [" << fisierInput << "] nu fost deschis!\n";
+        return -1;
     }
+    return yyparse();
 }

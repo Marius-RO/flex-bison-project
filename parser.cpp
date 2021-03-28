@@ -72,13 +72,14 @@
     #include <cmath>
     #include "parser.hpp"
 
-    // this function will be generated using flex
+    extern bool seteazaFisierulDeInput(const char* numeFisier);
+
+    // aceste functii vor fi generate de flex
     extern int yylex();
     extern void yyerror(char const* msg);
 
-    extern FILE *yyin;
 
-#line 82 "parser.cpp"
+#line 83 "parser.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -131,11 +132,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 14 "parser.y"
+#line 17 "parser.y"
 
     double dbl;
 
-#line 139 "parser.cpp"
+#line 140 "parser.cpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -510,7 +511,7 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    29,    29,    30,    33,    34,    35,    38,    39,    40
+       0,    32,    32,    33,    36,    37,    38,    41,    42,    43
 };
 #endif
 
@@ -1300,49 +1301,49 @@ yyreduce:
   switch (yyn)
     {
   case 3:
-#line 30 "parser.y"
+#line 33 "parser.y"
                         {  std::cout << (yyvsp[-1].dbl) << "\n"; }
-#line 1306 "parser.cpp"
+#line 1307 "parser.cpp"
     break;
 
   case 4:
-#line 33 "parser.y"
+#line 36 "parser.y"
            {(yyval.dbl) = (yyvsp[0].dbl);}
-#line 1312 "parser.cpp"
+#line 1313 "parser.cpp"
     break;
 
   case 5:
-#line 34 "parser.y"
+#line 37 "parser.y"
                     {(yyval.dbl) = (yyvsp[-2].dbl) + (yyvsp[0].dbl);}
-#line 1318 "parser.cpp"
+#line 1319 "parser.cpp"
     break;
 
   case 6:
-#line 35 "parser.y"
+#line 38 "parser.y"
                     {(yyval.dbl) = (yyvsp[-2].dbl) - (yyvsp[0].dbl);}
-#line 1324 "parser.cpp"
+#line 1325 "parser.cpp"
     break;
 
   case 7:
-#line 38 "parser.y"
+#line 41 "parser.y"
                   {(yyval.dbl) = (yyvsp[0].dbl);}
-#line 1330 "parser.cpp"
+#line 1331 "parser.cpp"
     break;
 
   case 8:
-#line 39 "parser.y"
+#line 42 "parser.y"
                            {(yyval.dbl) = (yyvsp[-2].dbl) * (yyvsp[0].dbl);}
-#line 1336 "parser.cpp"
+#line 1337 "parser.cpp"
     break;
 
   case 9:
-#line 40 "parser.y"
+#line 43 "parser.y"
                            {(yyval.dbl) = (yyvsp[-2].dbl) / (yyvsp[0].dbl);}
-#line 1342 "parser.cpp"
+#line 1343 "parser.cpp"
     break;
 
 
-#line 1346 "parser.cpp"
+#line 1347 "parser.cpp"
 
       default: break;
     }
@@ -1574,27 +1575,19 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 43 "parser.y"
+#line 46 "parser.y"
 
 
+/*** Implementarea functiilor C++ (main si altele daca este cazul (daca au fost declarate in sectiunea de declaratii)) ***/
 void yyerror(char const* msg){
     std::cout << "Syntax error: " << msg << "\n";
 }
 
 int main(){
-    // const char* inputFile = "input/input-2.cpp";
-    // yyin = fopen(inputFile,"r");
-    // if(!yyin){
-    //     std::cout << "[EROARE] Fisierul de input [" << inputFile << "] nu fost deschis!\n";
-    //     return -1;
-    // }
-
-    //return yyparse();
-
-    while(true){
-        int res = yyparse();
-        if(res != 0){
-            return res;
-        }
+    const char* fisierInput = "input/input-2.cpp";
+    if(!seteazaFisierulDeInput(fisierInput)){
+        std::cout << "[EROARE] Fisierul de input [" << fisierInput << "] nu fost deschis!\n";
+        return -1;
     }
+    return yyparse();
 }
