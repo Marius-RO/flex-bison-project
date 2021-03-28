@@ -1,4 +1,4 @@
-a.out
-lexer.cpp
-parser.cpp
-parser.hpp
+./a.out
+./lexer.cpp
+./parser.cpp
+./parser.hpp

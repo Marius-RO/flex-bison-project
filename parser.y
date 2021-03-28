@@ -10,6 +10,8 @@
     extern int yylex();
     extern void yyerror(char const* msg);
 
+    extern FILE *yyin;
+
 %}
 
 /*** Declararea tokenilor ***/
@@ -51,10 +53,16 @@ void yyerror(char const* msg){
 }
 
 int main(){
-    const char* fisierInput = "input/input-2.cpp";
-    if(!seteazaFisierulDeInput(fisierInput)){
-        std::cout << "[EROARE] Fisierul de input [" << fisierInput << "] nu fost deschis!\n";
-        return -1;
-    }
+    const char* inputFile = "input/input-2.cpp";
++   yyin = fopen(inputFile,"r");
++   if(!yyin){
++         std::cout << "[EROARE] Fisierul de input [" << inputFile << "] nu fost deschis!\n";
++         return -1;
++    }
+    // const char* fisierInput = "input/input-2.cpp";
+    // if(!seteazaFisierulDeInput(fisierInput)){
+    //     std::cout << "[EROARE] Fisierul de input [" << fisierInput << "] nu fost deschis!\n";
+    //     return -1;
+    // }
     return yyparse();
 }
