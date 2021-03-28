@@ -7,7 +7,7 @@ SRCS_HPP := $(wildcard *.hpp)
 SRCS_O := $(SRCS:%.cpp=%)
 
 build: lexer.l parser.y
-	bison -o parser.cpp parser.y
+	bison -o parser.cpp -d parser.y
 	flex -o lexer.cpp lexer.l
 	@echo "\nBuild finished"
 	
