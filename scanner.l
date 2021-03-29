@@ -18,20 +18,44 @@
 %}
 
 /*** Declararea expresiilor regulate ***/
-digits [0-9]+
-binopr [-+*/]
-paranthesis [()]
+Num [0-9]+
+Blank [ \t\r\n]+
+Alpha [A-Za-z]
 
 /*** Declararea regulilor pentru tokeni ***/
-%%
-{digits}        { yylval.dbl = atof(yytext); prelucreazaToken(yytext,"DIGIT"); return LITERAL_DBL;}
-{binopr}        { prelucreazaToken(yytext,"BINOP"); return yytext[0]; }
-"\n"            { prelucreazaToken("'slash' n","NEW_LINE"); return '\n';}
-[ \t\r\f]+	    {/* ignora spatiile */}
-.               { prelucreazaEroare(yytext, "nu a fost identificat");}
-<<EOF>>         { yyterminate(); }
+
+/*
+* {digits}        { yylval.dbl = atof(yytext); prelucreazaToken(yytext,"DIGIT"); return LITERAL_DBL;}
+*    {binopr}        { prelucreazaToken(yytext,"BINOP"); return yytext[0]; }
+*    "\n"            { prelucreazaToken("'slash' n","NEW_LINE"); return '\n';}
+*    [ \t\r\f]+	       {// ignora spatiile}
+*    .               { prelucreazaEroare(yytext, "nu a fost identificat");}
+*    <<EOF>>         { yyterminate(); }  
+*/
 
 %%
+{Num}	{prelucreazaToken(yytext,"NUMBER"); yylval = atoi(yytext); return(NUMBER);}
+"+" 	{prelucreazaToken(yytext,"PLUS"); return(PLUS);}
+"-"		{prelucreazaToken(yytext,"MINUS"); return(MINUS);}
+"*"     {prelucreazaToken(yytext,"MULTIPLICATION"); return(MULT);}
+"="     {prelucreazaToken(yytext,"ASSIGNMENT"); return(ASGN);}
+"<"     {prelucreazaToken(yytext,"LOWER"); return(LOWER);}
+">"     {prelucreazaToken(yytext,"GREATER"); return(GREATER);}
+";"		{prelucreazaToken(yytext,"SEMICOLON"); return(SEMI);}
+"("		{prelucreazaToken(yytext,"LEFT_PARENTHESIS"); return(PL);}
+")"		{prelucreazaToken(yytext,"RIGHT_PARENTHESIS"); return(PR);}
+"if"	{prelucreazaToken(yytext,"IF"); return(IF);}
+"else"	{prelucreazaToken(yytext,"ELSE"); return(ELSE);}
+"then"	{prelucreazaToken(yytext,"THEN"); return(THEN);}
+"=="	{prelucreazaToken(yytext,"EQUAL"); return(EQUAL);}
+"EXIT"  {prelucreazaToken(yytext,"EXIT"); return(EXIT);}
+{Alpha}({Alpha}|{Num})* {prelucreazaToken(yytext,"VARIABLE"); return(VARIABLE);}
+"\n"    { prelucreazaToken("'slash' n","NEW_LINE"); return '\n';}
+[ \t\r\f]+	{/* ignora spatiile */}
+<<EOF>>  { yyterminate(); }  
+.  {prelucreazaEroare(yytext, "nu a fost identificat");}
+%%
+
 
 /*** Implementarea functiilor C++ (main si altele daca este cazul (daca au fost declarate in sectiunea de declaratii)) ***/
 void prelucreazaToken(std::string token, std::string tipToken){
