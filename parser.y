@@ -1,50 +1,3 @@
-/*** LINKURI UTILE
-1. https://stackoverflow.com/questions/21948435/multiple-variables-calc-bison
-2. https://github.com/Saria-houloubi/Flex-And-Bison/tree/master/If-Else%20with%20logic
-3. https://stackoverflow.com/questions/8632516/how-to-get-string-value-of-token-in-flex-and-bison
-***/
-
-
-/***
-CONCLUZII DUPA ZIUA DE LUNI:
-1. Logica if-ul merge.
-2. Operatiile merg.
-3. Am incercat un sistem de asignare pe variabile. Initial am gasit pe linkul 1. ideea de a avea doar variabile dintr-o singura litera
-Fiecare variabila are stocata valoarea in vector pe pozitia corespunzatoare literei. Dar avem o mica mare problema:
-	Problema este ca operatorul de accces ($n -> $1, $2... etc, o sa-i numesc registrii pt ca seamana cu cei din MIPS :D) intoarce doar o singura valoare.
-	In mod default registrii returneaza doar INT, asa cum se intampla si in programul scris de mine.
-	Cum eu ar trebui sa obtin si valori int (numere convertite cu atoi - regula {Num} din scanner), dar si valori char* pentru a stii ce litera are variabila,
-	nu este posibila implementarea.
-
-Research facut de mine:
-	- Exista 2 variabile globale: yylval si yytext. 
-	     1. yytext este char* si reprezinta exact caracterele din input prelate de catre flex. 
-		 2. yylval este varianta procesata a lui yytext. Din acest motiv facem conversia cu atoi in regula {Num}
-		 3. yylval este valoarea pe care o returneaza registrii
-		 4. In mod default, toate productiile returneaza Int.
-
-Ce am observat in codul scris de tine:
-	1. Se foloseste double pt valoarea din registrii.
-	2. Un registru poate avea mai multe valori (structura care de fapt e union). Vezi linkul 3. In exemplul tau, se foloseste un union cu valoarea double
-	3. Trebuie specificat de la compilare ce tip returneaza productiile: Exemplu acel %token <dbl> expr.
-	4. Fiecare productie returneaza ceva, pentru a returna explicit se foloseste $$ = valoare_returnata.
-
-Solutia pe care am incercat-o: 
-    Am incercat un tip de date compus : union {int intVal, double dblVal, char* varName}, din care doar un camp va fi folosit la runtime (cred ca de aia e union).
-	Adica: Am de lucru cu VARIABLE : Folosesc varName, Am de lucru cu Expr: Folosesc dblVal.
-	Problema: Dupa ce specific ce tip sunt Expr si Variable, automat trebuie specificat si tipul celorlalte productii cum este ifElse, Condition, etc si se complica foarte mult.
-
-O solutie usoara la care ma gandesc dar care nu cred ca este si corecta:
-	Sa facem cumva sa lucram numai cu char* si in productii sa facem noi conversia in functie de ce avem nevoie in productia respectiva?
-
-Ce bazaconii vezi acum in cod:
-	In parser.hpp am declarat tokenii (=, -, *, (, ), etc)
-	If-else functional - Trebuie neaparat respectata productia: if(conditie) then ceva si neaprat ; la final. Asemanator si pt if fara else.
-	Asignarile pe variabile merg (+ calcule algebrice). Nu trebuie pus ; la final!
-
-
-***/
-
 /*** Sectiunea de declaratii pentru componentele limbajului C++ (headere, declaratii, variabile, etc. ) ***/
 %{
     #include <iostream>
@@ -54,7 +7,13 @@ Ce bazaconii vezi acum in cod:
     #include <stdlib.h>
     #include "parser.hpp"
 
+	// coduri de culoare
+	std::string A = "\033[02m"; /* culoarea primara */
+	std::string B = "\033[32m"; /* culoarea secundara */
+	std::string R = "\033[00m"; /* pt reset */
+	std::string Z = "\033[32m"; /* pt bison */
 
+	extern unsigned int numarLinii;
     extern FILE *yyin;
 
     // aceasta functie va fi generata de flex
@@ -62,20 +21,32 @@ Ce bazaconii vezi acum in cod:
 
     extern void yyerror(char const* msg);
 
-	extern void afisareVectorValori();
-
-	//Vector de variabile. Merg doar variabilele dintr-o singura litra (a, b, c, ...)
-	int sym[26];
+	// printeaza tipurile de interpretari
+	void afiseazaInterpretareConditie(int valoare, int stanga, int dreapta, std::string operatie);
+	void afiseazaInterpretareExpresie(int valoare, int stanga, int dreapta, std::string operatie);
+	void afiseazaInterpretareGenerala(std::string interpretare);
 %}
 
-/*** Declararea tokenilor ***/
+%union{
+	char name[1000];
+	int number;
+}
 
-%token IF ELSE PLUS MINUS SEMI PR PL THEN EQUAL EXIT ASGN MULT LOWER GREATER BLANK NUMBER VARIABLE
+/*** Declararea tokenilor ***/
+%token IF ELSE PLUS MINUS SEMICOLON LEFT_SHIFT RIGHT_SHIFT RIGHT_PARENTHESIS LEFT_PARENTHESIS RIGHT_BRACKET LEFT_BRACKET EQUALS ASSIGNMENT MULTIPLICATION LOWER GREATER INCLUDE_DIRECTIVE USING STRING INT WHILE BREAK CONTINUE RETURN
 %left EQUAL
 %left  PLUS MINUS
 %left MULT
 %left IF ELSE
 %right UNOP
+
+%token <name> IDENTIFIER;
+%token <number> INTEGER_VALUE;
+%token <name> VALOARE_VARIABILA_STRING;
+
+%type <number> Exp;
+%type <number> Condition;
+%type <number> Statment;
 
 
 %start program
@@ -83,74 +54,151 @@ Ce bazaconii vezi acum in cod:
 /*** Declararea gramaticii si a regulilor pentru gramatica ***/
 %%
 
-program: /* EMPTY */ {std::cout<<"Spatiu!\n";}
-	| program Statment '\n' {  std::cout <<"LinieNoua: "<< $2 << "\n"; }
+program: /* EMPTY */ {}
+	| program Statment '\n' { /*afiseazaInterpretareGenerala("Se trece la linia urmatoare");*/ }
     ;
 
 ifElse:	
-	IF PL Condition PR THEN Statment ELSE Statment SEMI {
-														if($3){
-																printf("In the if true part\n");
-																printf("The statment was executed with the value of %d\n",$6);
-															}
-														else{
-																printf("In the else part\n");
-																printf("The statment was executed with the value of %d\n",$8);
-															}
-															printf("\n");
-														};
-	| IF PL Condition PR THEN Statment SEMI{
-											if($3){
-													printf("Correct condition statment value is %d",$6);
-												}
-											else
-												printf("incorrect condition");	
-											
-											printf("\n");
-											};
-	;
-Condition:
-	Exp GREATER Exp {$$ =  $1 > $3? 1: 0;}
-	| Exp LOWER Exp {$$ =  $1 < $3? 1: 0; }
-	| Exp EQUAL Exp {$$ = $1 == $3? 1: 0; }
-	| NUMBER
+	IF LEFT_PARENTHESIS Condition RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET ELSE LEFT_BRACKET program RIGHT_BRACKET {
+			if($3){
+				afiseazaInterpretareGenerala("Conditia din [" + B + "IF" + R + A + "] este [" + B + "TRUE" + R + A +
+											 "] ==> Se executa corpul din [" + B + "IF" + R + A + "]");
+				}
+			else{
+				afiseazaInterpretareGenerala("Conditia din [" + B + "IF" + R + A + "] este [" + B + "FALSA" + R + A +
+											 "] ==> Se executa corpul din [" + B + "ELSE" + R + A + "]");
+				}
+		};
+
+	| IF LEFT_PARENTHESIS Condition RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET {
+			if($3){
+				afiseazaInterpretareGenerala("Conditia din [" + B + "IF" + R + A + "] este [" + B + "TRUE" + R + A +
+											 "] ==> Se executa corpul din [" + B + "IF" + R + A + "]");
+				}
+			else{
+				afiseazaInterpretareGenerala("Conditia din [" + B + "IF" + R + A + "] este [" + B + "TRUE" + R + A +
+											 "] ==> " + B + "NU" + R + A + " se executa corpul din [" + B + "IF" + R + A + "]");
+			}
+		};
 	;
 
-Statment:
-	| Exp { printf("Exp: %d\n", $1); }
-	| ifElse Statment {printf("IFELSE STM: \n"); }
-	| EXIT {printf("In Exit..");exit(0);}
-	| VARIABLE ASGN Exp {
-			sym[$1] = $3;
-			std::cout<<"Se pune "<<$3<<" pe pozitia " <<$1<<" yyval: "<<yyval<<"\n";
-			afisareVectorValori();
+Condition:
+	Exp GREATER Exp { 
+			$$ = $1 > $3? 1: 0;
+			afiseazaInterpretareConditie($$,$1,$3," > ");
+		}
+	| Exp LOWER Exp {
+			$$ =  $1 < $3? 1: 0;
+			afiseazaInterpretareConditie($$,$1,$3," < ");
+		}
+	| Exp EQUALS Exp {
+			$$ = $1 == $3? 1: 0;
+			afiseazaInterpretareConditie($$,$1,$3," == ");
+		}
+	| INTEGER_VALUE { 
+			$$ = $1;
+			afiseazaInterpretareGenerala("Este evaluata valoarea intreaga");
 		}
 	;
+
+Statment: /*empty*/ {}
+	| INCLUDE_DIRECTIVE LOWER IDENTIFIER GREATER { 
+		    std::string s($3);
+			afiseazaInterpretareGenerala("Se include directiva [" + B + s + R + A + "]");
+		}
+	| USING IDENTIFIER IDENTIFIER SEMICOLON {
+			std::string s1($2);
+			std::string s2($3);
+			afiseazaInterpretareGenerala("Se foloseste [" + B + s1 + R + A + "] [" + B + s2 + R + A + "]");
+		}
+	| INT IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET { 
+			std::string s1($2);
+			afiseazaInterpretareGenerala("Se defineste functia [" + B + s1 + R + A + "] de tip [" + B + "int" + R + A + "]");
+		}
+	| INT IDENTIFIER ASSIGNMENT Exp SEMICOLON {
+			std::string s1($2);
+			std::string s2(std::to_string($4));
+			afiseazaInterpretareGenerala("Variabila [" + B + s1 + R + A + "] de tip [" + B + "int" + R + A + "] ia valoarea [" 
+										+ B + s2 + R + A + "]");
+		}
+	| STRING IDENTIFIER ASSIGNMENT Exp SEMICOLON {
+			std::string s1($2);
+			std::string s2(std::to_string($4));
+			afiseazaInterpretareGenerala("Variabila [" + B + s1 + R + A + "] de tip [" + B + "string" + R + A + "] ia valoarea [" 
+								+ B + s2 + R + A + "]");
+		}
+	| Exp { 
+			std::string s1(std::to_string($1));
+			afiseazaInterpretareGenerala("Exp [" + B + s1 + R + A + "]");
+		}
+	| ifElse Statment {}
+	| WHILE LEFT_PARENTHESIS Condition RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET { 
+			if($3){
+				afiseazaInterpretareGenerala("Conditia din [" + B + "EHILE" + R + A + "] este [" + B + "TRUE" + R + A +
+									"] ==> Se executa corpul din [" + B + "WHILE" + R + A + "]");
+				}
+			else{
+				afiseazaInterpretareGenerala("Conditia din [" + B + "WHILE" + R + A + "] este [" + B + "FALSA" + R + A +
+								"] ==> " + B + "NU" + R + A + " se executa corpul din [" + B + "WHILE" + R + A + "]");
+				}
+			};
+	| BREAK SEMICOLON { 
+			afiseazaInterpretareGenerala("S-a intalnit [" + B + "BREAK" + R + A + "] in [" + B + "WHILE" + R + A + 
+										 "] ==> Se isese din bucla [" + B + "WHILE" + R + A + "]");
+		}
+	| RETURN Exp SEMICOLON { 
+			std::string s1(std::to_string($2));
+			afiseazaInterpretareGenerala("Se returneaza valoarea [" + B + s1 + R + A + "]");
+		}
+	;
+
 
 Exp:		
-	NUMBER {std::cout<<"Number: "<<$1<<"\n";}
-    | VARIABLE { 
-			std::cout<<"Valoarea de pe pozitia: "<<$1<<" este: "<<sym[$1]<<"\n";
-			$$ = sym[$1];
-		}
-	| Exp PLUS Exp {$$ = $1 + $3;}
-	| Exp MINUS Exp {$$ = $1 - $3;}
-    | Exp MULT Exp { $$ = $1 * $3; }
+	INTEGER_VALUE {
+		//std::string s1(std::to_string($1));
+		//std::string s1("nimic");
+		//afiseazaInterpretareGenerala("Valoare de tip INT " + s1);
+	}
+	| VALOARE_VARIABILA_STRING {
+		//std::string s1(std::to_string($1));
+		//std::string s1("nimic");
+		//afiseazaInterpretareGenerala("Valoare de tip string " + s1);
+	}
+	| Exp PLUS Exp {
+		$$ = $1 + $3;
+		afiseazaInterpretareExpresie($$,$1,$3," + ");
+	}
+	| Exp MINUS Exp {
+		$$ = $1 - $3;
+		afiseazaInterpretareExpresie($$,$1,$3," - ");
+	}
+    | Exp MULTIPLICATION Exp { 
+		$$ = $1 * $3;
+		afiseazaInterpretareExpresie($$,$1,$3," * ");
+	 }
     | '(' Exp ')' { $$ = $2; }
     ;
 
 %%
 
 /*** Implementarea functiilor C++ (main si altele daca este cazul (daca au fost declarate in sectiunea de declaratii)) ***/
-void yyerror(char const* msg){
-    std::cout << "Syntax error: " << msg << "\n";
+void afiseazaInterpretareConditie(int valoare, int stanga, int dreapta, std::string operatie){
+	std::cout << Z << "\n[BISON] " << R << A << "Conditia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
+			<< "] a fost evaluata  cu valoarea [" << B << valoare << R << A << "]" << R << "\n\n";
 }
 
-void afisareVectorValori(){
-	for(int i = 0; i < 26; i++){
-		std::cout<<sym[i]<<" ";
-	}
-	std::cout<<"\n";
+void afiseazaInterpretareExpresie(int valoare, int stanga, int dreapta, std::string operatie){
+    std::cout << Z << "\n[BISON] " << R << A << "Expresia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
+		     << "] a fost evaluata  cu valoarea [" << B << valoare << R << A << "]" << R << "\n\n";
+}
+
+void afiseazaInterpretareGenerala(std::string interpretare){
+	std::cout << Z << "\n[BISON] " << R << A << interpretare << R << "\n\n";
+}
+
+void yyerror(char const* msg){
+	// printeaza cu rosu eroarea si apoi reseteaza
+	std::cout << Z << "\n[BISON] " << R << "\033[31mEroare la linia [" << numarLinii << "]: Tokenul [" << msg << "] " << R;
 }
 
 int main(){

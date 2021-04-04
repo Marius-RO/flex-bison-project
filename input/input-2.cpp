@@ -1,6 +1,39 @@
-if(7>3) then 5 else 4;
-if(5>3) then 2;
-if(2>5) then 17 else 19;
-a = 5+3
-b = 2+4
-b
+#include <iostream>
+
+using namespace std;
+
+int main(){
+
+    // program care calculeaza suma a doua numere
+
+   /**
+    *  COMENTARIU PE 
+        MAI 
+        MULTE
+        LINII
+    **/
+
+    //int primulNumar = 20 * 20 / 20 + 1 - 2;
+    int primulNumar = 5;
+    int alDoileaNumar = 2;
+    string variabilaString = "Hello World";
+
+    // if (5 > 2){
+    //     //cout << "In if cu else";
+    // }
+    // else{
+    //     //cout << "In else \n";
+    // }
+
+    if (5 > 2){
+       // cout << "In if simplu";
+    }
+
+    while(5 > 2){
+        //cout << "In while \n";
+        break;
+    }
+
+    return 0;
+
+}
