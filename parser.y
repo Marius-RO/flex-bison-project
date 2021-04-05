@@ -9,10 +9,10 @@
     #include "parser.hpp"
 
 	// coduri de culoare
-	std::string A = "\033[02m"; /* culoarea primara */
+	std::string A = "\033[00m"; /* culoarea primara */
 	std::string B = "\033[32m"; /* culoarea secundara */
 	std::string R = "\033[00m"; /* pt reset */
-	std::string Z = "\033[32m"; /* pt bison */
+	std::string Z = "\033[33m"; /* pt bison */
 
 	extern unsigned int numarLinii;
     extern FILE *yyin;
@@ -39,8 +39,8 @@
 
 %token PLUS MINUS INMULTIRE IMPARTIRE 
 %token ATRIBUIRE EGALITATE MAI_MIC MAI_MARE SHIFTARE_STANGA SHIFTARE_DREAPTA
-%token SEMICOLON LINIE_NOUA PD PI AD AI 
-%token DIRECTIVA_INCLUDE USING STRING INT IF ELSE WHILE BREAK CONTINUE RETURN
+%token VIRGULA SEMICOLON LINIE_NOUA PD PI AD AI 
+%token DIRECTIVA_INCLUDE USING VOID STRING INT IF ELSE WHILE BREAK CONTINUE RETURN
 
 %left EGALITATE
 %left PLUS MINUS
@@ -78,9 +78,13 @@ instructiune:
 			std::string s2($3);
 			afiseazaInterpretareGenerala("Se foloseste [" + B + s1 + R + A + "] [" + B + s2 + R + A + "]");
 		}
-	| INT IDENTIFICATOR PD PI AD program AI { 
+	| INT IDENTIFICATOR PD parametru_functie PI AD program AI { 
 			std::string s1($2);
-			afiseazaInterpretareGenerala("Se defineste functia [" + B + s1 + R + A + "] de tip [" + B + "int" + R + A + "]");
+			afiseazaInterpretareGenerala("S-a definit functia [" + B + s1 + R + A + "] de tip [" + B + "int" + R + A + "]");
+		}
+	| VOID IDENTIFICATOR PD parametru_functie PI AD program AI { 
+			std::string s1($2);
+			afiseazaInterpretareGenerala("S-a definit functia [" + B + s1 + R + A + "] de tip [" + B + "void" + R + A + "]");
 		}
 	| INT IDENTIFICATOR ATRIBUIRE expresie_int SEMICOLON {
 			std::string s1($2);
@@ -94,7 +98,11 @@ instructiune:
 			afiseazaInterpretareGenerala("Variabila [" + B + s1 + R + A + "] de tip [" + B + "string" + R + A + "] ia valoarea [" 
 								+ B + s2 + R + A + "]");
 		}
-	| if_else { afiseazaInterpretareGenerala("Blocul de tip [" + B + "if_else]" + R + A + " s-a terminat\n");}
+	| IDENTIFICATOR PD argument_functie PI SEMICOLON {
+			std::string s1($1);
+			afiseazaInterpretareGenerala("Se apeleaza functia [" + B + s1 + R + A + "]");
+	  }
+	| if_else { afiseazaInterpretareGenerala("Blocul de tip [" + B + "if_else]" + R + A + " s-a terminat");}
 	| WHILE PD conditie PI AD program AI { 
 			if($3){
 				afiseazaInterpretareGenerala("Conditia din [" + B + "WHILE" + R + A + "] este [" + B + "TRUE" + R + A +
@@ -113,6 +121,52 @@ instructiune:
 			std::string s1(std::to_string($2));
 			afiseazaInterpretareGenerala("Se returneaza valoarea [" + B + s1 + R + A + "]");
 		}
+	;
+
+parametru_functie: /*lambda*/{}
+	| INT IDENTIFICATOR {
+		std::string s1($2);
+		afiseazaInterpretareGenerala("Parametrul functiei este de tip [" + B + "int" + R + A + "] si are identificatorul ["
+								 + B + s1 + R + A + "]");
+		}
+	| INT IDENTIFICATOR VIRGULA parametru_functie{
+		std::string s1($2);
+		afiseazaInterpretareGenerala("Parametrul functiei este de tip [" + B + "int" + R + A + "] si are identificatorul ["
+								 + B + s1 + R + A + "]");
+	}
+	| STRING IDENTIFICATOR {
+		std::string s1($2);
+		afiseazaInterpretareGenerala("Parametrul functiei este de tip [" + B + "string" + R + A + "] si are identificatorul ["
+								 + B + s1 + R + A + "]");
+		}
+	| STRING IDENTIFICATOR VIRGULA parametru_functie{
+		std::string s1($2);
+		afiseazaInterpretareGenerala("Parametrul functiei este de tip [" + B + "string" + R + A + "] si are identificatorul ["
+								 + B + s1 + R + A + "]");
+	}
+	;
+
+argument_functie: /*lambda*/{}
+	| expresie_int {
+		std::string s1(std::to_string($1));
+		afiseazaInterpretareGenerala("Argumentul functiei este de tip [" + B + "int" + R + A + "] si are valoarea ["
+								 + B + s1 + R + A + "]");
+		}
+	| expresie_int VIRGULA argument_functie {
+		std::string s1(std::to_string($1));
+		afiseazaInterpretareGenerala("Parametrul functiei este de tip [" + B + "int" + R + A + "] si are valoarea ["
+								 + B + s1 + R + A + "]");
+	}
+	| expresie_string {
+		std::string s1($1);
+		afiseazaInterpretareGenerala("Argumentul functiei este de tip [" + B + "string" + R + A + "] si are valoarea ["
+								 + B + s1 + R + A + "]");
+		}
+	| expresie_string VIRGULA argument_functie {
+		std::string s1($1);
+		afiseazaInterpretareGenerala("Parametrul functiei este de tip [" + B + "string" + R + A + "] si are valoarea ["
+								 + B + s1 + R + A + "]");
+	}
 	;
 
 if_else:	
@@ -162,7 +216,7 @@ conditie:
 expresie_int:
 	VALOARE_VARIABILA_INT {
 		std::string s1(std::to_string($1));
-		afiseazaInterpretareGenerala("Valoarea de tip [" + B + "int" + R + A + "] este [" + B + s1 + R + A + "]\n");
+		afiseazaInterpretareGenerala("Valoarea de tip [" + B + "int" + R + A + "] este [" + B + s1 + R + A + "]");
 	}
 	| expresie_int PLUS expresie_int {
 		$$ = $1 + $3;
@@ -179,6 +233,7 @@ expresie_int:
 	| expresie_int IMPARTIRE expresie_int { 
 		if($3 == 0){
 			yyerror("Impartire la 0!");
+			exit(-1);
 		}
 		else{
 			$$ = $1 / $3;
@@ -191,7 +246,7 @@ expresie_int:
 expresie_string:
 	VALOARE_VARIABILA_STRING {
 		std::string s1($1);
-		afiseazaInterpretareGenerala("Valoarea de tip [" + B + "string" + R + A + "] este [" + B + s1 + R + A + "]\n");
+		afiseazaInterpretareGenerala("Valoarea de tip [" + B + "string" + R + A + "] este [" + B + s1 + R + A + "]");
 	}
 	| expresie_string PLUS expresie_string {
 		char tmp[1000];
@@ -206,27 +261,27 @@ expresie_string:
 
 /*** Implementarea functiilor C++ (main si altele daca este cazul (daca au fost declarate in sectiunea de declaratii)) ***/
 void afiseazaInterpretareConditie(int valoare, int stanga, int dreapta, std::string operatie){
-	std::cout << Z << "\n[BISON] " << R << A << "Conditia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
+	std::cout << R <<  Z << "\n[BISON] " << R << A << "Conditia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
 			<< "] a fost evaluata  cu valoarea [" << B << valoare << R << A << "]" << R << "\n\n";
 }
 
 void afiseazaInterpretareExpresie(int valoare, int stanga, int dreapta, std::string operatie){
-    std::cout << Z << "\n[BISON] " << R << A << "Expresia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
+    std::cout << R <<  Z << "\n[BISON] " << R << A << "Expresia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
 		     << "] a fost evaluata  cu valoarea [" << B << valoare << R << A << "]" << R << "\n\n";
 }
 
 void afiseazaInterpretareExpresie(char* valoare, char*  stanga, char*  dreapta, std::string operatie){
-    std::cout << Z << "\n[BISON] " << R << A << "Expresia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
+    std::cout << R << Z << "\n[BISON] " << R << A << "Expresia [" << B << stanga << " " << operatie << " " << dreapta << R << A 
 		     << "] a fost evaluata  cu valoarea [" << B << valoare << R << A << "]" << R << "\n\n";
 }
 
 void afiseazaInterpretareGenerala(std::string interpretare){
-	std::cout << Z << "\n[BISON] " << R << A << interpretare << R << "\n\n";
+	std::cout << R << Z << "\n[BISON] " << R << A << interpretare << R << "\n\n";
 }
 
 void yyerror(char const* msg){
 	// printeaza cu rosu eroarea si apoi reseteaza
-	std::cout << Z << "\n[BISON] " << R << "\033[31mEroare la linia [" << numarLinii << "]: Mesaj eroare [" << msg << "] " << R << "\n";
+	std::cout << R << Z << "\n[BISON] " << R << "\033[31mEroare la linia [" << numarLinii << "]: Mesaj eroare [" << msg << "] " << R << "\n";
 }
 
 int main(){

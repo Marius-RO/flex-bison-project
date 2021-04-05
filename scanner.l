@@ -8,6 +8,12 @@
     #include <string>
     #include "parser.hpp"
 
+    // coduri de culoare
+    std:: string AA = "\033[02m";
+    std:: string BB = "\033[36m";
+    std:: string RR = "\033[00m";
+    std:: string ZZ = "\033[32m";
+
     unsigned int numarLinii = 1;
     unsigned int numarCaractere = 0;
     unsigned int numarTokeni = 0;
@@ -40,6 +46,7 @@ VALOARE_VARIABILA_STRING ["][^"\n\r]*["]
 ">"         {prelucreazaToken(yytext,"MAI_MARE"); return(MAI_MARE);}
 "<<"        {prelucreazaToken(yytext,"SHIFTARE_STANGA"); return(SHIFTARE_STANGA);}
 ">>"        {prelucreazaToken(yytext,"SHIFTARE_DREAPTA"); return(SHIFTARE_DREAPTA);}
+","		    {prelucreazaToken(yytext,"VIRGULA"); return(VIRGULA);}
 ";"		    {prelucreazaToken(yytext,"SEMICOLON"); return(SEMICOLON);}
 "("		    {prelucreazaToken(yytext,"PARANTEZA_DESCHISA"); return(PD);}
 ")"		    {prelucreazaToken(yytext,"PARANTEZA_INCHISA"); return(PI);}
@@ -50,6 +57,7 @@ VALOARE_VARIABILA_STRING ["][^"\n\r]*["]
 "=="	    {prelucreazaToken(yytext,"OPERATOR_EGALITATE"); return(EGALITATE);}
 "#include"  {prelucreazaToken(yytext,"DIRECTIVA_INCLUDE"); return(DIRECTIVA_INCLUDE);}
 "using"     {prelucreazaToken(yytext,"USING_KEYWORD"); return(USING);}
+"void"      {prelucreazaToken(yytext,"VOID_KEYWORD"); return(VOID);}
 "string"    {prelucreazaToken(yytext,"STRING_KEYWORD"); return(STRING);}
 "int"       {prelucreazaToken(yytext,"INT_KEYWORD"); return(INT);}
 "while"     {prelucreazaToken(yytext,"WHILE_KEYWORD"); return(WHILE);}
@@ -75,14 +83,16 @@ VALOARE_VARIABILA_STRING ["][^"\n\r]*["]
 
 /*** Implementarea functiilor C++ (main si altele daca este cazul (daca au fost declarate in sectiunea de declaratii)) ***/
 void prelucreazaToken(std::string token, std::string tipToken){
-    std::cout << "\033[33m[FLEX]\033[0m Linia [" << numarLinii << "]: Tokenul [\033[32m" << token << "\033[0m] este de tip [\033[32m" << tipToken << "\033[0m]\n";
+    std::cout << RR << ZZ << "[FLEX] " << RR << AA << "Linia [" << RR << BB << numarLinii << RR << AA << "]: Tokenul [" << RR << BB << token << RR 
+              << AA << "] este de tip [" << RR << BB << tipToken << RR << AA << "]\n";
+    
     numarTokeni++;
     numarCaractere += token.length();
 }
 
 void prelucreazaEroare(std::string token, std::string eroare){
     // printeaza cu rosu eroarea si apoi reseteaza
-    std::cout << "\033[33m[FLEX]\033[0m \033[31mEroare la linia [" << numarLinii << "]: Tokenul [" << token << "] " << eroare << "\033[0m\n";
+    std::cout << RR << ZZ << "[FLEX]" << RR << "\033[31mEroare la linia [" << numarLinii << "]: Tokenul [" << token << "] " << eroare << RR << "\n";
 }
 
 char* preiaSubstring(char* sir, int start, int final){

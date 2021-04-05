@@ -2,9 +2,13 @@
 
 using namespace std;
 
-// int exempluFunctie(){
+void exempluFunctieFaraParametri(){
 
-// }
+}
+
+void exempluFunctieCuParametri(int parametruInt,string parametruString){
+
+}
 
 int main(){
 
@@ -17,19 +21,20 @@ int main(){
     int alDoileaNumar = 20 * 20 / (19 + 1) - 2;
 
     if (5 > 2){
-        //exempluFunctie();
+        exempluFunctieFaraParametri();
     }
     else {
-       // exempluFunctie();
+        exempluFunctieFaraParametri();
     } 
 
     if (5 < 2){
-        //exempluFunctie();
+        exempluFunctieCuParametri(10, "valoare-parametru-2");
     }
 
     while(5 > 2){
-       //exempluFunctie();
-       break;
+        //exempluFunctieCuParametri(1 + 2 * 3 / 0, "valoare" + "-parametru-4"); // eroare pt ca este impartire la 0
+        exempluFunctieCuParametri(4 * 2 + 2 / 2, "valoare" + "-parametru" + "-4");
+        break;
     }
 
     string variabilaString1 = "Hello";
