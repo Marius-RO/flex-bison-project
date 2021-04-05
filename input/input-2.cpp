@@ -1,32 +1,39 @@
-#include <iostream>
+#include <iostream> 
 
 using namespace std;
 
+// int exempluFunctie(){
+
+// }
+
 int main(){
 
-    // program care calculeaza suma a doua numere
+    // comentariu pe o singura linie
 
-    //int primulNumar = 20 * 20 / 20 + 1 - 2;
-    int primulNumar = "5";
-    int primulNumar = 5;
-    int alDoileaNumar = 2;
-    string variabilaString = "Hello World";
+    //int primulNumar = "5"; // aici o sa fie eroare de sintaxa daca e scoasa din comentariu
+    //string variabilaString = 123; // aici o sa fie eroare de sintaxa daca e scoasa din comentariu
 
-    if (5 > 2){
-        //cout << "In if cu else";
-    }
-    else{
-        //cout << "In else \n";
-    }
+    int primulNumar = 2;
+    int alDoileaNumar = 20 * 20 / (19 + 1) - 2;
 
     if (5 > 2){
-       // cout << "In if simplu";
+        //exempluFunctie();
+    }
+    else {
+       // exempluFunctie();
+    } 
+
+    if (5 < 2){
+        //exempluFunctie();
     }
 
     while(5 > 2){
-        //cout << "In while \n";
-        break;
+       //exempluFunctie();
+       break;
     }
+
+    string variabilaString1 = "Hello";
+    string variabilaString2 = "Hello" + "-World";
 
     /**
     *  COMENTARIU PE 

@@ -13,6 +13,7 @@
     unsigned int numarTokeni = 0;
     void prelucreazaToken(std::string token, std::string tipToken);
     void prelucreazaEroare(std::string token, std::string tipToken);
+    char* preiaSubstring(char* sir, int start, int final);
 
     // aceasta functie va fi generata de bison
     extern int yyparse();
@@ -25,7 +26,7 @@ cifra_sau_litera [a-zA-Z0-9]
 
 IDENTIFICATOR {litera}+{cifra_sau_litera}*
 VALOARE_VARIABILA_INT {cifra}+
-VALOARE_VARIABILA_STRING ["][^\n\r]*["]
+VALOARE_VARIABILA_STRING ["][^"\n\r]*["]
 
 /*** Declararea regulilor pentru tokeni ***/
 
@@ -33,6 +34,7 @@ VALOARE_VARIABILA_STRING ["][^\n\r]*["]
 "+" 	    {prelucreazaToken(yytext,"PLUS"); return(PLUS);}
 "-"		    {prelucreazaToken(yytext,"MINUS"); return(MINUS);}
 "*"         {prelucreazaToken(yytext,"INMULTIRE"); return(INMULTIRE);}
+"/"         {prelucreazaToken(yytext,"IMPARTIRE"); return(IMPARTIRE);}
 "="         {prelucreazaToken(yytext,"ATRIBUIRE"); return(ATRIBUIRE);}
 "<"         {prelucreazaToken(yytext,"MAI_MIC"); return(MAI_MIC);}
 ">"         {prelucreazaToken(yytext,"MAI_MARE"); return(MAI_MARE);}
@@ -57,13 +59,14 @@ VALOARE_VARIABILA_STRING ["][^\n\r]*["]
 
 
 {VALOARE_VARIABILA_INT}	    {  prelucreazaToken(yytext,"VALOARE_VARIABILA_INT"); yylval.numar = atoi(yytext); return(VALOARE_VARIABILA_INT);}
-{VALOARE_VARIABILA_STRING}  {  prelucreazaToken(yytext,"VALOARE_VARIABILA_STRING"); sscanf(yytext, "%s", yylval.sir_caractere); 
-                                return(VALOARE_VARIABILA_STRING); }
-{IDENTIFICATOR}              {prelucreazaToken(yytext,"IDENTIFICATOR"); sscanf(yytext, "%s", yylval.sir_caractere);  return(IDENTIFICATOR);}
+{VALOARE_VARIABILA_STRING}  {  prelucreazaToken(yytext,"VALOARE_VARIABILA_STRING"); 
+                               sscanf(preiaSubstring(yytext,1,strlen(yytext)-2), "%s", yylval.sir_caractere);
+                               return(VALOARE_VARIABILA_STRING); }
+{IDENTIFICATOR}              { prelucreazaToken(yytext,"IDENTIFICATOR"); sscanf(yytext, "%s", yylval.sir_caractere); return(IDENTIFICATOR);}
 
 "//".+            {prelucreazaToken(yytext,"Comentariu pe o singura linie");}
 "/*"(\n|.)*"*/"   {prelucreazaToken(yytext,"Comentariu pe mai multe linii");}
-"\n"              {numarLinii++; /*prelucreazaToken("'slash' n","LINIE_NOUA");*/ return(LINIE_NOUA);}
+"\n"              {numarLinii++; /*prelucreazaToken("'slash' n","LINIE_NOUA");*/ /*return(LINIE_NOUA);*/}
 [ \t\r\f]+	      {/* ignora spatiile */}
 <<EOF>>           { yyterminate(); }  
 .                 {prelucreazaEroare(yytext, "nu a fost identificat");}
@@ -80,4 +83,12 @@ void prelucreazaToken(std::string token, std::string tipToken){
 void prelucreazaEroare(std::string token, std::string eroare){
     // printeaza cu rosu eroarea si apoi reseteaza
     std::cout << "\033[33m[FLEX]\033[0m \033[31mEroare la linia [" << numarLinii << "]: Tokenul [" << token << "] " << eroare << "\033[0m\n";
+}
+
+char* preiaSubstring(char* sir, int start, int final){
+    char* tmp = (char*) malloc(1000);
+    for(int i = start, j = 0; i <= final; i++,j++){
+         tmp[j] = sir[i];
+    }
+    return tmp;
 }
