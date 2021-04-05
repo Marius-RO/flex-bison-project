@@ -1,3 +1,4 @@
+/* rezolva niste erori/warninguri*/
 %option noyywrap
 
 /*** Sectiunea de declaratii pentru componentele limbajului C++ (headere, declaratii, variabile, etc. ) ***/
@@ -13,39 +14,39 @@
     void prelucreazaToken(std::string token, std::string tipToken);
     void prelucreazaEroare(std::string token, std::string tipToken);
 
-    // aceasta functie va fi generate de bison
+    // aceasta functie va fi generata de bison
     extern int yyparse();
 %}
 
 /*** Declararea expresiilor regulate ***/
-INTEGER_VALUE [0-9]+
-Blank [ \t\r\n]+
-Alpha [A-Za-z]
+cifra [0-9]
+litera [A-Za-z]
+cifra_sau_litera [a-zA-Z0-9]
+
+IDENTIFICATOR {litera}+{cifra_sau_litera}*
+VALOARE_VARIABILA_INT {cifra}+
 VALOARE_VARIABILA_STRING ["][^\n\r]*["]
 
 /*** Declararea regulilor pentru tokeni ***/
 
 %%
-{INTEGER_VALUE}	{prelucreazaToken(yytext,"INTEGER_VALUE"); yylval.number = atoi(yytext); return(INTEGER_VALUE);}
-{VALOARE_VARIABILA_STRING}  { prelucreazaToken(yytext,"VALOARE_VARIABILA_STRING"); 
-                    sscanf(yytext, "%s", yylval.name);/*strcpy(yylval,yytext);*/ return(VALOARE_VARIABILA_STRING); }
-"+" 	{prelucreazaToken(yytext,"PLUS"); return(PLUS);}
-"-"		{prelucreazaToken(yytext,"MINUS"); return(MINUS);}
-"*"     {prelucreazaToken(yytext,"MULTIPLICATION"); return(MULTIPLICATION);}
-"="     {prelucreazaToken(yytext,"ASSIGNMENT"); return(ASSIGNMENT);}
-"<"     {prelucreazaToken(yytext,"LOWER"); return(LOWER);}
-">"     {prelucreazaToken(yytext,"GREATER"); return(GREATER);}
-"<<"    {prelucreazaToken(yytext,"LEFT_SHIFT"); return(LEFT_SHIFT);}
-">>"    {prelucreazaToken(yytext,"RIGHT_SHIFT"); return(RIGHT_SHIFT);}
-";"		{prelucreazaToken(yytext,"SEMICOLON"); return(SEMICOLON);}
-"("		{prelucreazaToken(yytext,"LEFT_PARENTHESIS"); return(LEFT_PARENTHESIS);}
-")"		{prelucreazaToken(yytext,"RIGHT_PARENTHESIS"); return(RIGHT_PARENTHESIS);}
-"{"     {prelucreazaToken(yytext,"LEFT_BRACKET"); return(LEFT_BRACKET);}
-"}"     {prelucreazaToken(yytext,"RIGHT_BRACKET"); return(RIGHT_BRACKET);}
-"if"	{prelucreazaToken(yytext,"IF_KEYWORD"); return(IF);}
-"else"	{prelucreazaToken(yytext,"ELSE_KEYWORD"); return(ELSE);}
-"=="	{prelucreazaToken(yytext,"EQUALS_OPERATOR"); return(EQUALS);}
-"#include"  {prelucreazaToken(yytext,"INCLUDE_DIRECTIVE"); return(INCLUDE_DIRECTIVE);}
+"+" 	    {prelucreazaToken(yytext,"PLUS"); return(PLUS);}
+"-"		    {prelucreazaToken(yytext,"MINUS"); return(MINUS);}
+"*"         {prelucreazaToken(yytext,"INMULTIRE"); return(INMULTIRE);}
+"="         {prelucreazaToken(yytext,"ATRIBUIRE"); return(ATRIBUIRE);}
+"<"         {prelucreazaToken(yytext,"MAI_MIC"); return(MAI_MIC);}
+">"         {prelucreazaToken(yytext,"MAI_MARE"); return(MAI_MARE);}
+"<<"        {prelucreazaToken(yytext,"SHIFTARE_STANGA"); return(SHIFTARE_STANGA);}
+">>"        {prelucreazaToken(yytext,"SHIFTARE_DREAPTA"); return(SHIFTARE_DREAPTA);}
+";"		    {prelucreazaToken(yytext,"SEMICOLON"); return(SEMICOLON);}
+"("		    {prelucreazaToken(yytext,"PARANTEZA_DESCHISA"); return(PD);}
+")"		    {prelucreazaToken(yytext,"PARANTEZA_INCHISA"); return(PI);}
+"{"         {prelucreazaToken(yytext,"ACOLADA_DESCHISA"); return(AD);}
+"}"         {prelucreazaToken(yytext,"ACOLADA_INCHISA"); return(AI);}
+"if"	    {prelucreazaToken(yytext,"IF_KEYWORD"); return(IF);}
+"else"	    {prelucreazaToken(yytext,"ELSE_KEYWORD"); return(ELSE);}
+"=="	    {prelucreazaToken(yytext,"OPERATOR_EGALITATE"); return(EGALITATE);}
+"#include"  {prelucreazaToken(yytext,"DIRECTIVA_INCLUDE"); return(DIRECTIVA_INCLUDE);}
 "using"     {prelucreazaToken(yytext,"USING_KEYWORD"); return(USING);}
 "string"    {prelucreazaToken(yytext,"STRING_KEYWORD"); return(STRING);}
 "int"       {prelucreazaToken(yytext,"INT_KEYWORD"); return(INT);}
@@ -55,7 +56,10 @@ VALOARE_VARIABILA_STRING ["][^\n\r]*["]
 "return"    {prelucreazaToken(yytext,"RETURN_KEYWORD"); return(RETURN);}
 
 
-{Alpha}({Alpha}|{INTEGER_VALUE})* {prelucreazaToken(yytext,"IDENTIFIER"); sscanf(yytext, "%s", yylval.name); /*strcpy(yylval,yytext);*/ return(IDENTIFIER);}
+{VALOARE_VARIABILA_INT}	    {  prelucreazaToken(yytext,"VALOARE_VARIABILA_INT"); yylval.numar = atoi(yytext); return(VALOARE_VARIABILA_INT);}
+{VALOARE_VARIABILA_STRING}  {  prelucreazaToken(yytext,"VALOARE_VARIABILA_STRING"); sscanf(yytext, "%s", yylval.sir_caractere); 
+                                return(VALOARE_VARIABILA_STRING); }
+{IDENTIFICATOR}              {prelucreazaToken(yytext,"IDENTIFICATOR"); sscanf(yytext, "%s", yylval.sir_caractere);  return(IDENTIFICATOR);}
 
 "//".+            {prelucreazaToken(yytext,"Comentariu pe o singura linie");}
 "/*"(\n|.)*"*/"   {prelucreazaToken(yytext,"Comentariu pe mai multe linii");}

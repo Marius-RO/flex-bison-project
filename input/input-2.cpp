@@ -14,6 +14,7 @@ int main(){
     **/
 
     //int primulNumar = 20 * 20 / 20 + 1 - 2;
+    int primulNumar = "5";
     int primulNumar = 5;
     int alDoileaNumar = 2;
     string variabilaString = "Hello World";

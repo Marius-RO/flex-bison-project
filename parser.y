@@ -27,26 +27,32 @@
 	void afiseazaInterpretareGenerala(std::string interpretare);
 %}
 
+/* Flex va comunica cu bison folosind yyval.sir_caractere si yyval.numar */
 %union{
-	char name[1000];
-	int number;
+	char sir_caractere[1000];
+	int numar;
 }
 
 /*** Declararea tokenilor ***/
-%token IF ELSE PLUS MINUS SEMICOLON LEFT_SHIFT RIGHT_SHIFT RIGHT_PARENTHESIS LEFT_PARENTHESIS RIGHT_BRACKET LEFT_BRACKET EQUALS ASSIGNMENT MULTIPLICATION LOWER GREATER INCLUDE_DIRECTIVE USING STRING INT WHILE BREAK CONTINUE RETURN
-%left EQUAL
-%left  PLUS MINUS
-%left MULT
+
+%token PLUS MINUS INMULTIRE 
+%token ATRIBUIRE EGALITATE MAI_MIC MAI_MARE SHIFTARE_STANGA SHIFTARE_DREAPTA
+%token SEMICOLON PD PI AD AI
+%token DIRECTIVA_INCLUDE USING STRING INT IF ELSE WHILE BREAK CONTINUE RETURN
+
+%left EGALITATE
+%left PLUS MINUS
+%left INMULTIRE
 %left IF ELSE
 %right UNOP
 
-%token <name> IDENTIFIER;
-%token <number> INTEGER_VALUE;
-%token <name> VALOARE_VARIABILA_STRING;
+%token <sir_caractere> IDENTIFICATOR;
+%token <numar> VALOARE_VARIABILA_INT;
+%token <sir_caractere> VALOARE_VARIABILA_STRING;
 
-%type <number> Exp;
-%type <number> Condition;
-%type <number> Statment;
+%type <numar> expresie;
+%type <numar> conditie;
+%type <numar> instructiune;
 
 
 %start program
@@ -54,12 +60,12 @@
 /*** Declararea gramaticii si a regulilor pentru gramatica ***/
 %%
 
-program: /* EMPTY */ {}
-	| program Statment '\n' { /*afiseazaInterpretareGenerala("Se trece la linia urmatoare");*/ }
+program: /* empty */ {}
+	| program instructiune '\n' { /*afiseazaInterpretareGenerala("Se trece la linia urmatoare");*/ }
     ;
 
-ifElse:	
-	IF LEFT_PARENTHESIS Condition RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET ELSE LEFT_BRACKET program RIGHT_BRACKET {
+if_else:	
+	IF PD conditie PI AD program AI ELSE AD program AI {
 			if($3){
 				afiseazaInterpretareGenerala("Conditia din [" + B + "IF" + R + A + "] este [" + B + "TRUE" + R + A +
 											 "] ==> Se executa corpul din [" + B + "IF" + R + A + "]");
@@ -70,7 +76,7 @@ ifElse:
 				}
 		};
 
-	| IF LEFT_PARENTHESIS Condition RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET {
+	| IF PD conditie PI AD program AI {
 			if($3){
 				afiseazaInterpretareGenerala("Conditia din [" + B + "IF" + R + A + "] este [" + B + "TRUE" + R + A +
 											 "] ==> Se executa corpul din [" + B + "IF" + R + A + "]");
@@ -82,59 +88,59 @@ ifElse:
 		};
 	;
 
-Condition:
-	Exp GREATER Exp { 
+conditie:
+	expresie MAI_MARE expresie { 
 			$$ = $1 > $3? 1: 0;
 			afiseazaInterpretareConditie($$,$1,$3," > ");
 		}
-	| Exp LOWER Exp {
+	| expresie MAI_MIC expresie {
 			$$ =  $1 < $3? 1: 0;
 			afiseazaInterpretareConditie($$,$1,$3," < ");
 		}
-	| Exp EQUALS Exp {
+	| expresie EGALITATE expresie {
 			$$ = $1 == $3? 1: 0;
 			afiseazaInterpretareConditie($$,$1,$3," == ");
 		}
-	| INTEGER_VALUE { 
+	| VALOARE_VARIABILA_INT { 
 			$$ = $1;
 			afiseazaInterpretareGenerala("Este evaluata valoarea intreaga");
 		}
 	;
 
-Statment: /*empty*/ {}
-	| INCLUDE_DIRECTIVE LOWER IDENTIFIER GREATER { 
+instructiune: /*empty*/ {}
+	| DIRECTIVA_INCLUDE MAI_MIC IDENTIFICATOR MAI_MARE { 
 		    std::string s($3);
 			afiseazaInterpretareGenerala("Se include directiva [" + B + s + R + A + "]");
 		}
-	| USING IDENTIFIER IDENTIFIER SEMICOLON {
+	| USING IDENTIFICATOR IDENTIFICATOR SEMICOLON {
 			std::string s1($2);
 			std::string s2($3);
 			afiseazaInterpretareGenerala("Se foloseste [" + B + s1 + R + A + "] [" + B + s2 + R + A + "]");
 		}
-	| INT IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET { 
+	| INT IDENTIFICATOR PD PI AD program AI { 
 			std::string s1($2);
 			afiseazaInterpretareGenerala("Se defineste functia [" + B + s1 + R + A + "] de tip [" + B + "int" + R + A + "]");
 		}
-	| INT IDENTIFIER ASSIGNMENT Exp SEMICOLON {
+	| INT IDENTIFICATOR ATRIBUIRE expresie SEMICOLON {
 			std::string s1($2);
 			std::string s2(std::to_string($4));
 			afiseazaInterpretareGenerala("Variabila [" + B + s1 + R + A + "] de tip [" + B + "int" + R + A + "] ia valoarea [" 
 										+ B + s2 + R + A + "]");
 		}
-	| STRING IDENTIFIER ASSIGNMENT Exp SEMICOLON {
+	| STRING IDENTIFICATOR ATRIBUIRE expresie SEMICOLON {
 			std::string s1($2);
 			std::string s2(std::to_string($4));
 			afiseazaInterpretareGenerala("Variabila [" + B + s1 + R + A + "] de tip [" + B + "string" + R + A + "] ia valoarea [" 
 								+ B + s2 + R + A + "]");
 		}
-	| Exp { 
+	| expresie { 
 			std::string s1(std::to_string($1));
 			afiseazaInterpretareGenerala("Exp [" + B + s1 + R + A + "]");
 		}
-	| ifElse Statment {}
-	| WHILE LEFT_PARENTHESIS Condition RIGHT_PARENTHESIS LEFT_BRACKET program RIGHT_BRACKET { 
+	| if_else instructiune {}
+	| WHILE PD conditie PI AD program AI { 
 			if($3){
-				afiseazaInterpretareGenerala("Conditia din [" + B + "EHILE" + R + A + "] este [" + B + "TRUE" + R + A +
+				afiseazaInterpretareGenerala("Conditia din [" + B + "WHILE" + R + A + "] este [" + B + "TRUE" + R + A +
 									"] ==> Se executa corpul din [" + B + "WHILE" + R + A + "]");
 				}
 			else{
@@ -146,15 +152,15 @@ Statment: /*empty*/ {}
 			afiseazaInterpretareGenerala("S-a intalnit [" + B + "BREAK" + R + A + "] in [" + B + "WHILE" + R + A + 
 										 "] ==> Se isese din bucla [" + B + "WHILE" + R + A + "]");
 		}
-	| RETURN Exp SEMICOLON { 
+	| RETURN expresie SEMICOLON { 
 			std::string s1(std::to_string($2));
 			afiseazaInterpretareGenerala("Se returneaza valoarea [" + B + s1 + R + A + "]");
 		}
 	;
 
 
-Exp:		
-	INTEGER_VALUE {
+expresie:		
+	VALOARE_VARIABILA_INT {
 		//std::string s1(std::to_string($1));
 		//std::string s1("nimic");
 		//afiseazaInterpretareGenerala("Valoare de tip INT " + s1);
@@ -164,19 +170,19 @@ Exp:
 		//std::string s1("nimic");
 		//afiseazaInterpretareGenerala("Valoare de tip string " + s1);
 	}
-	| Exp PLUS Exp {
+	| expresie PLUS expresie {
 		$$ = $1 + $3;
 		afiseazaInterpretareExpresie($$,$1,$3," + ");
 	}
-	| Exp MINUS Exp {
+	| expresie MINUS expresie {
 		$$ = $1 - $3;
 		afiseazaInterpretareExpresie($$,$1,$3," - ");
 	}
-    | Exp MULTIPLICATION Exp { 
+    | expresie INMULTIRE expresie { 
 		$$ = $1 * $3;
 		afiseazaInterpretareExpresie($$,$1,$3," * ");
 	 }
-    | '(' Exp ')' { $$ = $2; }
+    | '(' expresie ')' { $$ = $2; }
     ;
 
 %%
