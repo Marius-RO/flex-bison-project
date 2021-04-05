@@ -63,7 +63,7 @@ VALOARE_VARIABILA_STRING ["][^\n\r]*["]
 
 "//".+            {prelucreazaToken(yytext,"Comentariu pe o singura linie");}
 "/*"(\n|.)*"*/"   {prelucreazaToken(yytext,"Comentariu pe mai multe linii");}
-"\n"              {numarLinii++; /*prelucreazaToken("'slash' n","NEW_LINE");*/ return '\n';}
+"\n"              {numarLinii++; /*prelucreazaToken("'slash' n","LINIE_NOUA");*/ return(LINIE_NOUA);}
 [ \t\r\f]+	      {/* ignora spatiile */}
 <<EOF>>           { yyterminate(); }  
 .                 {prelucreazaEroare(yytext, "nu a fost identificat");}

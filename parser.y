@@ -37,7 +37,7 @@
 
 %token PLUS MINUS INMULTIRE 
 %token ATRIBUIRE EGALITATE MAI_MIC MAI_MARE SHIFTARE_STANGA SHIFTARE_DREAPTA
-%token SEMICOLON PD PI AD AI
+%token SEMICOLON LINIE_NOUA PD PI AD AI 
 %token DIRECTIVA_INCLUDE USING STRING INT IF ELSE WHILE BREAK CONTINUE RETURN
 
 %left EGALITATE
@@ -61,7 +61,7 @@
 %%
 
 program: /* empty */ {}
-	| program instructiune '\n' { /*afiseazaInterpretareGenerala("Se trece la linia urmatoare");*/ }
+	| instructiune LINIE_NOUA program { /*afiseazaInterpretareGenerala("Se trece la linia urmatoare");*/ }
     ;
 
 if_else:	
@@ -204,7 +204,7 @@ void afiseazaInterpretareGenerala(std::string interpretare){
 
 void yyerror(char const* msg){
 	// printeaza cu rosu eroarea si apoi reseteaza
-	std::cout << Z << "\n[BISON] " << R << "\033[31mEroare la linia [" << numarLinii << "]: Tokenul [" << msg << "] " << R;
+	std::cout << Z << "\n[BISON] " << R << "\033[31mEroare la linia [" << numarLinii << "]: Mesaj eroare [" << msg << "] " << R << "\n";
 }
 
 int main(){
